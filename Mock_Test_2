@@ -1,0 +1,43 @@
+1. Write an SQL query to find the second-highest salary from an "Employees" table.
+Sol: SELECT MAX(salary) AS second_highest_salary FROM Employees WHERE salary < (SELECT MAX(salary) FROM Employees);
+
+2. Write a MapReduce program to calculate the word count of a given input text file.
+Sol: from mrjob.job import MRJob
+import re
+
+WORD_REGEX = re.compile(r"\b\w+\b")
+
+class WordCount(MRJob):
+
+    def mapper(self, _, line):
+        words = WORD_REGEX.findall(line)
+        for word in words:
+            yield word.lower(), 1
+
+    def reducer(self, word, counts):
+        yield word, sum(counts)
+
+if __name__ == '__main__':
+    WordCount.run()
+
+3. Write a Spark program to count the number of occurrences of each word in a given text file.
+Sol: from pyspark import SparkContext
+
+# Create a SparkContext
+sc = SparkContext("local", "WordCount")
+
+# Read the input text file
+text_file = sc.textFile("input.txt")
+
+# Split each line into words and flatMap to create a list of words
+words = text_file.flatMap(lambda line: line.split(" "))
+
+# Map each word to a tuple (word, 1) and reduce by key to count occurrences
+word_counts = words.map(lambda word: (word, 1)).reduceByKey(lambda a, b: a + b)
+
+# Print the word counts
+for word, count in word_counts.collect():
+    print(f"{word}: {count}")
+
+# Stop the SparkContext
+sc.stop()
